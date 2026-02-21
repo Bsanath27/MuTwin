@@ -32,7 +32,7 @@ export class PhysicsEngine {
             nv: 0,
             geoms: [],          // Will be filled on model load
             bodyPositions: [],   // [x, y, z] per body
-            metrics: { time: 0, z: 0, velocity: 0, reward: 0 }
+            metrics: { time: 0, z: 0, velocity: 0, reward: 0, altitude: 0, speed: 0 }
         };
 
         // Pre-allocated control array
@@ -261,6 +261,37 @@ export class PhysicsEngine {
      */
     getTimestep() {
         return this.model ? this.model.opt.timestep : 0.005;
+    }
+
+    /**
+     * Apply external force and torque to a body via xfrc_applied.
+     * @param {number} bodyIdx - Body index (0 = world)
+     * @param {number} fx - Force X
+     * @param {number} fy - Force Y
+     * @param {number} fz - Force Z
+     * @param {number} tx - Torque X
+     * @param {number} ty - Torque Y
+     * @param {number} tz - Torque Z
+     */
+    applyBodyForce(bodyIdx, fx, fy, fz, tx, ty, tz) {
+        if (!this.data) return;
+        const off = bodyIdx * 6;
+        this.data.xfrc_applied[off] = fx;
+        this.data.xfrc_applied[off + 1] = fy;
+        this.data.xfrc_applied[off + 2] = fz;
+        this.data.xfrc_applied[off + 3] = tx;
+        this.data.xfrc_applied[off + 4] = ty;
+        this.data.xfrc_applied[off + 5] = tz;
+    }
+
+    /**
+     * Clear all external forces.
+     */
+    clearExternalForces() {
+        if (!this.data) return;
+        for (let i = 0; i < this.data.xfrc_applied.length; i++) {
+            this.data.xfrc_applied[i] = 0;
+        }
     }
 
     /**

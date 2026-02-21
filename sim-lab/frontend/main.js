@@ -1,11 +1,11 @@
 /**
- * main.js — Sim-Lab Application Bootstrap
+ * main.js — MuTwin Application Bootstrap v2.0
  * 
  * Architecture:
  * 1. Initialize WASM engine
- * 2. Register models
+ * 2. Register models (including drone)
  * 3. Wire up modules (physics → renderer → UI → controllers)
- * 4. Run 60fps animation loop: controller → step → containment → render → UI
+ * 4. Run 60fps loop: controller → step → containment → render → UI
  * 
  * This file is the ONLY place where modules are wired together.
  * No circular dependencies allowed.
@@ -16,6 +16,7 @@ import { PhysicsEngine } from './src/core/PhysicsEngine.js';
 import { ModelManager } from './src/core/ModelManager.js';
 import { ControllerManager } from './src/core/ControllerManager.js';
 import { ContainmentSystem } from './src/core/ContainmentSystem.js';
+import { WindSystem } from './src/core/WindSystem.js';
 
 // Render
 import { Renderer } from './src/render/Renderer.js';
@@ -25,14 +26,15 @@ import { CameraController } from './src/render/CameraController.js';
 import { ControlPanel } from './src/ui/ControlPanel.js';
 import { ModelSelector } from './src/ui/ModelSelector.js';
 import { ParameterPanel } from './src/ui/ParameterPanel.js';
+import { AnalyticsPanel } from './src/ui/AnalyticsPanel.js';
+import { DroneHUD } from './src/ui/DroneHUD.js';
 
 // Controllers
 import { ManualController } from './src/controllers/ManualController.js';
 import { RLController } from './src/controllers/RLController.js';
 import { AntigravityController } from './src/controllers/AntigravityController.js';
-
-// Feature Panels
-import { AnalyticsPanel } from './src/ui/AnalyticsPanel.js';
+import { JoystickHandler } from './src/controllers/JoystickHandler.js';
+import { DroneController } from './src/controllers/DroneController.js';
 
 // ─── Application State ─────────────────────────────────
 let isPaused = false;
@@ -40,6 +42,7 @@ let frameCount = 0;
 let lastFpsTime = performance.now();
 let fps = 0;
 const PHYSICS_STEPS_PER_FRAME = 2;
+let isDroneModel = false;  // Track if current model is the drone
 
 // ─── Module Instances ───────────────────────────────────
 const physics = new PhysicsEngine();
@@ -59,16 +62,23 @@ const camera = new CameraController(renderer.camera, canvas);
 
 // UI Panels
 const controlPanel = new ControlPanel(document.getElementById('actuator-panel'));
-// Default controller: manual sliders
 const manualController = new ManualController(controlPanel);
 const rlController = new RLController(physics);
 const antiController = new AntigravityController(physics);
 
+// Drone-specific modules
+const joystick = new JoystickHandler();
+const droneController = new DroneController(physics, joystick);
+const wind = new WindSystem(physics);
+const droneHUD = new DroneHUD(document.getElementById('drone-hud-container'));
+
 // Analytics
 const analytics = new AnalyticsPanel(document.getElementById('analytics-container'));
 let lastAnalyticsUpdate = 0;
+let lastHUDUpdate = 0;
 
-controllerManager.setController(manualController);
+// Default: drone controller active
+controllerManager.setController(droneController);
 
 const paramPanel = new ParameterPanel(document.getElementById('param-panel'), {
     onGravity: (v) => physics.setGravity(v),
@@ -87,6 +97,7 @@ const paramPanel = new ParameterPanel(document.getElementById('param-panel'), {
 });
 
 // ─── Model Registration ─────────────────────────────────
+modelManager.register('drone', '../models/drone.xml', 'Drone (6-DOF)');
 modelManager.register('cartpole', '../models/cartpole.xml', 'Cartpole');
 modelManager.register('ant', '../models/ant.xml', 'Ant');
 modelManager.register('floating_box', '../models/floating_box.xml', 'Floating Box');
@@ -99,13 +110,20 @@ const modelSelector = new ModelSelector(
     (xml, name) => switchModelFromXML(xml, name)
 );
 
-// Feature Toggles
+// ─── Feature Toggles ────────────────────────────────────
 document.getElementById('rl-toggle').addEventListener('change', (e) => {
     if (e.target.checked) {
         document.getElementById('antigravity-toggle').checked = false;
-        controllerManager.setController(rlController);
+        if (isDroneModel) {
+            // RL feeds velocity commands into DroneController
+            droneController.setExternalCommand({ vx: 0, vy: 0, vz: 0, yaw: 0 });
+            controllerManager.setController(droneController);
+        } else {
+            controllerManager.setController(rlController);
+        }
     } else {
-        controllerManager.setController(manualController);
+        droneController.clearExternalCommand();
+        controllerManager.setController(isDroneModel ? droneController : manualController);
     }
 });
 
@@ -114,13 +132,25 @@ document.getElementById('antigravity-toggle').addEventListener('change', (e) => 
         document.getElementById('rl-toggle').checked = false;
         controllerManager.setController(antiController);
     } else {
-        controllerManager.setController(manualController);
+        controllerManager.setController(isDroneModel ? droneController : manualController);
     }
 });
 
 document.getElementById('analytics-btn').addEventListener('click', (e) => {
     const isVisible = analytics.toggle();
     e.target.textContent = isVisible ? 'Hide Analytics' : 'Show Analytics';
+});
+
+// Drone toggles
+document.getElementById('follow-toggle').addEventListener('change', (e) => {
+    camera.toggleFollow();
+});
+// Start with follow enabled (checkbox is checked by default)
+camera.toggleFollow();
+
+document.getElementById('wind-toggle').addEventListener('change', (e) => {
+    const active = wind.toggle();
+    if (active) wind.randomizeDirection();
 });
 
 // ─── Model Switch Handler ────────────────────────────────
@@ -131,6 +161,7 @@ async function switchModel(key) {
 
     try {
         await modelManager.loadModel(key);
+        isDroneModel = (key === 'drone');
         onModelLoaded();
     } catch (e) {
         overlay.textContent = `Error: ${e.message}`;
@@ -145,6 +176,7 @@ async function switchModelFromXML(xml, name) {
 
     try {
         await modelManager.loadModelFromXML(xml, name);
+        isDroneModel = false; // Custom XML is not the drone
         onModelLoaded();
     } catch (e) {
         overlay.textContent = `Error: ${e.message}`;
@@ -162,6 +194,18 @@ function onModelLoaded() {
     controlPanel.buildSliders(info);
     controllerManager.init(info.count, info.ranges);
 
+    // Set appropriate controller
+    if (isDroneModel) {
+        controllerManager.setController(droneController);
+    } else {
+        controllerManager.setController(manualController);
+    }
+
+    // Reset toggles
+    document.getElementById('rl-toggle').checked = false;
+    document.getElementById('antigravity-toggle').checked = false;
+    droneController.clearExternalCommand();
+
     overlay.style.display = 'none';
     isPaused = false;
 }
@@ -177,7 +221,6 @@ function loop() {
         fps = frameCount;
         frameCount = 0;
         lastFpsTime = now;
-        // Batch DOM writes: only update counters once per second
         if (fpsEl) fpsEl.textContent = fps;
     }
 
@@ -185,10 +228,18 @@ function loop() {
     camera.update();
 
     if (!isPaused && physics.model) {
-        // Controller → control vector
+        // Clear external forces before controller writes
+        physics.clearExternalForces();
+
+        // Controller → control vector (DroneController writes xfrc_applied)
         const state = physics.getState();
         controllerManager.update(state);
         const control = controllerManager.getControlVector();
+
+        // Wind (additive, after controller)
+        if (isDroneModel && wind.enabled) {
+            wind.update(state.time);
+        }
 
         // Physics stepping
         for (let i = 0; i < PHYSICS_STEPS_PER_FRAME; i++) {
@@ -204,16 +255,31 @@ function loop() {
         }
     }
 
-    // Render (always, even when paused to show camera changes)
+    // Render (always, even when paused)
     const renderState = physics.getState();
     if (renderState) {
         renderer.update(renderState.geoms);
         if (timeEl) timeEl.textContent = renderState.metrics.time.toFixed(2) + 's';
 
+        // Camera follow drone body
+        if (isDroneModel && physics.data) {
+            camera.setFollowTarget([
+                physics.data.qpos[0],
+                physics.data.qpos[1],
+                physics.data.qpos[2]
+            ]);
+        }
+
         // Update Analytics at 10Hz
         if (now - lastAnalyticsUpdate > 100) {
             analytics.update(renderState.metrics);
             lastAnalyticsUpdate = now;
+        }
+
+        // Update Drone HUD at 10Hz
+        if (isDroneModel && now - lastHUDUpdate > 100) {
+            droneHUD.update(droneController.telemetry, joystick.hasGamepad);
+            lastHUDUpdate = now;
         }
     }
 }
@@ -228,10 +294,10 @@ async function boot() {
         console.info(`WASM init: ${(performance.now() - t0).toFixed(0)}ms`);
 
         // Populate model selector
-        modelSelector.populate(modelManager.getModelList(), 'cartpole');
+        modelSelector.populate(modelManager.getModelList(), 'drone');
 
-        // Load default model
-        await switchModel('cartpole');
+        // Load default model: DRONE
+        await switchModel('drone');
 
         // Start loop
         loop();

@@ -1,0 +1,59 @@
+<mujoco model="drone">
+  <compiler angle="radian"/>
+
+  <option timestep="0.005" gravity="0 0 -9.81" integrator="RK4">
+    <flag contact="enable"/>
+  </option>
+
+  <default>
+    <geom contype="1" conaffinity="1" condim="3" friction="1 0.5 0.5"/>
+  </default>
+
+  <worldbody>
+    <light pos="0 0 8" dir="0 0 -1" diffuse="0.9 0.9 0.9" specular="0.3 0.3 0.3"/>
+    <light pos="5 -5 6" dir="-0.5 0.5 -0.8" diffuse="0.4 0.4 0.5"/>
+
+    <!-- Ground -->
+    <geom name="ground" type="plane" size="20 20 0.1" rgba="0.25 0.25 0.28 1"/>
+
+    <!-- Landing pad marker -->
+    <geom name="pad" type="cylinder" pos="0 0 0.005" size="0.5 0.005" rgba="0.15 0.5 0.3 0.6"/>
+
+    <!-- Drone Body -->
+    <body name="drone" pos="0 0 1">
+      <freejoint name="root"/>
+      <inertial mass="1.2" pos="0 0 0" diaginertia="0.02 0.02 0.04"/>
+
+      <!-- Central chassis -->
+      <geom name="chassis" type="box" size="0.08 0.08 0.025" rgba="0.15 0.15 0.2 1"/>
+      <geom name="chassis_top" type="box" pos="0 0 0.03" size="0.04 0.04 0.01" rgba="0.1 0.4 0.8 1"/>
+
+      <!-- Arms (X-configuration) -->
+      <geom name="arm_fr" type="capsule" fromto="0 0 0  0.18  0.18 0" size="0.012" rgba="0.35 0.35 0.4 1"/>
+      <geom name="arm_fl" type="capsule" fromto="0 0 0 -0.18  0.18 0" size="0.012" rgba="0.35 0.35 0.4 1"/>
+      <geom name="arm_br" type="capsule" fromto="0 0 0  0.18 -0.18 0" size="0.012" rgba="0.35 0.35 0.4 1"/>
+      <geom name="arm_bl" type="capsule" fromto="0 0 0 -0.18 -0.18 0" size="0.012" rgba="0.35 0.35 0.4 1"/>
+
+      <!-- Motor housings -->
+      <geom name="motor_fr" type="cylinder" pos=" 0.18  0.18 0.01" size="0.03 0.015" rgba="0.2 0.2 0.25 1"/>
+      <geom name="motor_fl" type="cylinder" pos="-0.18  0.18 0.01" size="0.03 0.015" rgba="0.2 0.2 0.25 1"/>
+      <geom name="motor_br" type="cylinder" pos=" 0.18 -0.18 0.01" size="0.03 0.015" rgba="0.2 0.2 0.25 1"/>
+      <geom name="motor_bl" type="cylinder" pos="-0.18 -0.18 0.01" size="0.03 0.015" rgba="0.2 0.2 0.25 1"/>
+
+      <!-- Thruster discs (visible propellers) -->
+      <geom name="prop_fr" type="cylinder" pos=" 0.18  0.18 0.03" size="0.06 0.003" rgba="0.6 0.6 0.65 0.5"/>
+      <geom name="prop_fl" type="cylinder" pos="-0.18  0.18 0.03" size="0.06 0.003" rgba="0.6 0.6 0.65 0.5"/>
+      <geom name="prop_br" type="cylinder" pos=" 0.18 -0.18 0.03" size="0.06 0.003" rgba="0.6 0.6 0.65 0.5"/>
+      <geom name="prop_bl" type="cylinder" pos="-0.18 -0.18 0.03" size="0.06 0.003" rgba="0.6 0.6 0.65 0.5"/>
+
+      <!-- Thruster sites (for visual effects) -->
+      <site name="thrust_fr" pos=" 0.18  0.18 0.035" size="0.01" rgba="1 0.4 0 1"/>
+      <site name="thrust_fl" pos="-0.18  0.18 0.035" size="0.01" rgba="1 0.4 0 1"/>
+      <site name="thrust_br" pos=" 0.18 -0.18 0.035" size="0.01" rgba="1 0.4 0 1"/>
+      <site name="thrust_bl" pos="-0.18 -0.18 0.035" size="0.01" rgba="1 0.4 0 1"/>
+
+      <!-- Front direction indicator -->
+      <geom name="front_marker" type="sphere" pos="0 0.1 0.03" size="0.012" rgba="0.9 0.2 0.1 1"/>
+    </body>
+  </worldbody>
+</mujoco>

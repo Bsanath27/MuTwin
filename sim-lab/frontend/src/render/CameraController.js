@@ -64,6 +64,11 @@ export class CameraController {
         this._defaultSpherical = this.spherical.clone();
         this._defaultTarget = this.target.clone();
 
+        // Follow mode
+        this._followEnabled = false;
+        this._followPos = new THREE.Vector3();
+        this._followLerp = 0.06;
+
         this._bindEvents();
         this._applySpherical();
     }
@@ -189,5 +194,25 @@ export class CameraController {
         this._zoomDelta = 0;
         this._focusTarget = null;
         this._focusProgress = 1;
+    }
+
+    /**
+     * Smoothly move camera target to follow a world position.
+     * Call each frame with the drone's current position.
+     * @param {number[]} pos - [x, y, z]
+     */
+    setFollowTarget(pos) {
+        if (!this._followEnabled) return;
+        this._followPos.set(pos[0], pos[1], pos[2]);
+        this.target.lerp(this._followPos, this._followLerp);
+    }
+
+    /**
+     * Toggle follow mode.
+     * @returns {boolean} New follow state
+     */
+    toggleFollow() {
+        this._followEnabled = !this._followEnabled;
+        return this._followEnabled;
     }
 }

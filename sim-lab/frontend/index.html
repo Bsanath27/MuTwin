@@ -4,10 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sim-Lab | MuJoCo Robotics Playground</title>
-    <meta name="description" content="Browser-based MuJoCo WebAssembly robotics simulation playground">
+    <title>MuTwin | Drone Simulation Playground</title>
+    <meta name="description" content="Interactive 6-DOF drone simulation with joystick control and RL stabilization">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="merged_features.css">
+    <link rel="stylesheet" href="drone.css">
     <link rel="preload" href="lib/mujoco_wasm.wasm" as="fetch" type="application/wasm" crossorigin>
 </head>
 
@@ -23,8 +24,8 @@
         <!-- Sidebar -->
         <aside id="sidebar">
             <header>
-                <h1>SIM-LAB <span class="version-badge">v1.1</span></h1>
-                <p class="subtitle">MuJoCo Robotics Playground</p>
+                <h1>MuTwin <span class="version-badge">v2.0</span></h1>
+                <p class="subtitle">Drone Simulation Playground</p>
             </header>
 
             <!-- Model Selector -->
@@ -33,7 +34,7 @@
                 <select id="model-select"></select>
             </section>
 
-            <!-- Controllers Selection -->
+            <!-- Control Mode -->
             <section class="panel">
                 <h2>Control Mode</h2>
                 <div class="control-group">
@@ -49,6 +50,25 @@
                         <span class="slider round"></span>
                     </label>
                     <span>Antigravity Stabilization</span>
+                </div>
+            </section>
+
+            <!-- Drone Controls -->
+            <section class="panel">
+                <h2>Drone</h2>
+                <div class="control-group">
+                    <label class="switch">
+                        <input type="checkbox" id="follow-toggle" checked>
+                        <span class="slider round"></span>
+                    </label>
+                    <span>Camera Follow</span>
+                </div>
+                <div class="control-group">
+                    <label class="switch">
+                        <input type="checkbox" id="wind-toggle">
+                        <span class="slider round"></span>
+                    </label>
+                    <span>Wind Disturbance</span>
                 </div>
             </section>
 
@@ -79,6 +99,9 @@
 
         <!-- Analytics Overlay -->
         <div id="analytics-container"></div>
+
+        <!-- Drone HUD Overlay -->
+        <div id="drone-hud-container"></div>
 
         <!-- 3D Viewport -->
         <canvas id="sim-canvas"></canvas>
