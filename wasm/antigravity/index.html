@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MuJoCo Antigravity</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="modulepreload" href="main.js">
+    <link rel="modulepreload" href="vendor/three.0.160.0.module.js">
+    <link rel="preload" href="lib/mujoco_wasm.wasm" as="fetch" type="application/wasm" crossorigin>
+    <link rel="preload" href="assets/antigravity.xml" as="fetch" type="application/xml" crossorigin>
+</head>
+
+<body class="charts-hidden">
+    <div id="loading-overlay">Loading MuJoCo WASM...</div>
+    <div id="drop-zone">Drop MuJoCo XML Here</div>
+
+    <div id="main-layout">
+        <canvas id="sim-canvas"></canvas>
+
+        <div id="ui-container">
+            <h1>Antigravity Control</h1>
+
+            <div class="control-group">
+                <label>Model</label>
+                <select id="model-select"
+                    style="background: #333; color: white; border: none; padding: 5px; border-radius: 4px;">
+                    <option value="assets/antigravity.xml" selected>Quick Start (Tiny)</option>
+                    <option value="../assets/furuta_pendulum.xml">Furuta Pendulum</option>
+                    <option value="../assets/multi_robot.xml">Multi-Robot Arena</option>
+                    <option value="assets/humanoid.xml">Humanoid</option>
+                    <option value="assets/ant.xml">Ant</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label class="switch">
+                    <input type="checkbox" id="gravity-toggle">
+                    <span class="slider round"></span>
+                </label>
+                <span>Activate Antigravity</span>
+            </div>
+
+            <div class="control-group">
+                <label>Gravity Force (Z)</label>
+                <input type="range" id="gravity-slider" min="-10" max="10" step="0.1" value="0" disabled>
+                <span id="gravity-value">0.00 m/s²</span>
+            </div>
+
+            <!-- NEW PHYSICS CONTROLS -->
+            <hr style="border-top: 1px solid #444; margin: 15px 0;">
+            <p style="font-size: 0.9em; color: #888; font-weight: bold;">LIVE PHYSICS CONTROLS</p>
+
+            <div class="control-group">
+                <label>Motor Torque</label>
+                <input type="range" id="torque-slider" min="0" max="10" step="0.5" value="1.5">
+                <span id="torque-value">1.5 N⋅m</span>
+            </div>
+
+            <div class="control-group">
+                <label>Pendulum Mass</label>
+                <input type="range" id="mass-slider" min="0.1" max="5.0" step="0.1" value="0.8">
+                <span id="mass-value">0.8 kg</span>
+            </div>
+
+            <div class="control-group">
+                <label>Joint Damping</label>
+                <input type="range" id="damping-slider" min="0" max="0.1" step="0.001" value="0.001">
+                <span id="damping-value">0.001</span>
+            </div>
+            <hr style="border-top: 1px solid #444; margin: 15px 0;">
+
+            <div class="control-group">
+                <label class="switch">
+                    <input type="checkbox" id="rl-toggle">
+                    <span class="slider round"></span>
+                </label>
+                <span>Enable RL Control</span>
+            </div>
+
+            <div class="control-group">
+                <label>Manual Control</label>
+                <input type="range" id="ctrl-slider" min="-1" max="1" step="0.01" value="0">
+                <span id="ctrl-value">0.00</span>
+            </div>
+
+            <div class="control-group buttons">
+                <button id="reset-btn">Reset</button>
+                <button id="pause-btn">Pause</button>
+            </div>
+
+            <div class="control-group buttons">
+                <button id="analytics-btn">Show Analytics</button>
+            </div>
+
+            <div class="metrics-summary">
+                <p>FPS: <span id="fps-counter">0</span></p>
+                <p>Episode: <span id="episode-counter">1</span></p>
+                <p>Time: <span id="sim-time">0.00s</span></p>
+            </div>
+        </div>
+
+        <div id="charts-container">
+            <div class="chart-wrapper">
+                <canvas id="reward-chart"></canvas>
+            </div>
+            <div class="chart-wrapper">
+                <canvas id="position-chart"></canvas>
+            </div>
+            <div class="chart-wrapper">
+                <canvas id="velocity-chart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- ES Module Entry Point -->
+    <script type="module" src="main.js"></script>
+</body>
+
+</html>

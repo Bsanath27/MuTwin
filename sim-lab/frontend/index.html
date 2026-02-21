@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sim-Lab | MuJoCo Robotics Playground</title>
+    <meta name="description" content="Browser-based MuJoCo WebAssembly robotics simulation playground">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="merged_features.css">
+    <link rel="preload" href="lib/mujoco_wasm.wasm" as="fetch" type="application/wasm" crossorigin>
+</head>
+
+<body>
+    <!-- Loading Overlay -->
+    <div id="loading-overlay">Initializing MuJoCo WASM...</div>
+
+    <!-- Drag-and-Drop Zone -->
+    <div id="drop-zone">Drop MuJoCo XML Here</div>
+
+    <!-- Main Layout: Canvas + Sidebar -->
+    <div id="app-layout">
+        <!-- Sidebar -->
+        <aside id="sidebar">
+            <header>
+                <h1>SIM-LAB <span class="version-badge">v1.1</span></h1>
+                <p class="subtitle">MuJoCo Robotics Playground</p>
+            </header>
+
+            <!-- Model Selector -->
+            <section class="panel">
+                <h2>Model</h2>
+                <select id="model-select"></select>
+            </section>
+
+            <!-- Controllers Selection -->
+            <section class="panel">
+                <h2>Control Mode</h2>
+                <div class="control-group">
+                    <label class="switch">
+                        <input type="checkbox" id="rl-toggle">
+                        <span class="slider round"></span>
+                    </label>
+                    <span>RL Control (TF.js)</span>
+                </div>
+                <div class="control-group">
+                    <label class="switch">
+                        <input type="checkbox" id="antigravity-toggle">
+                        <span class="slider round"></span>
+                    </label>
+                    <span>Antigravity Stabilization</span>
+                </div>
+            </section>
+
+            <!-- Parameter Panel (gravity, timestep, containment) -->
+            <section class="panel" id="param-panel"></section>
+
+            <!-- Actuator Controls -->
+            <section class="panel" id="actuator-panel"></section>
+
+            <!-- Analytics Toggle -->
+            <section class="panel">
+                <button id="analytics-btn" class="btn-primary">Show Analytics</button>
+            </section>
+
+            <!-- Metrics -->
+            <section class="panel metrics">
+                <h3>Metrics</h3>
+                <div class="metric-row">
+                    <span>FPS</span>
+                    <span id="fps-counter" class="metric-val">0</span>
+                </div>
+                <div class="metric-row">
+                    <span>Sim Time</span>
+                    <span id="sim-time" class="metric-val">0.00s</span>
+                </div>
+            </section>
+        </aside>
+
+        <!-- Analytics Overlay -->
+        <div id="analytics-container"></div>
+
+        <!-- 3D Viewport -->
+        <canvas id="sim-canvas"></canvas>
+    </div>
+
+    <!-- ES Module Entry Point -->
+    <script type="module" src="main.js"></script>
+</body>
+
+</html>

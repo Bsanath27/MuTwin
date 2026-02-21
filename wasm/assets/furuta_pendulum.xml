@@ -1,0 +1,56 @@
+<mujoco model="furuta_pendulum">
+    <compiler inertiafromgeom="true" angle="radian" coordinate="local"/>
+    <option timestep="0.01" gravity="0 0 -9.81" integrator="RK4"/>
+    
+    <default>
+        <joint armature="0.005" damping="0.02" limited="false"/>
+        <geom contype="0" conaffinity="0" friction="1 0.5 0.5" rgba="0.8 0.6 0.4 1" margin="0.01"/>
+        <!-- Weaken the motor drastically so it HAS to pump the pendulum to swing it up -->
+        <motor ctrlrange="-1.5 1.5" ctrllimited="true"/>
+    </default>
+
+    <asset>
+        <texture type="skybox" builtin="gradient" rgb1="0.4 0.6 0.8" rgb2="0 0 0" width="512" height="512"/>
+        <texture name="texplane" type="2d" builtin="checker" rgb1="0.2 0.3 0.4" rgb2="0.1 0.15 0.2" width="512" height="512" mark="cross" markrgb="0.8 0.8 0.8"/>
+        <material name="matplane" reflectance="0.3" texture="texplane" texrepeat="1 1" texuniform="true"/>
+    </asset>
+
+    <worldbody>
+        <light directional="true" diffuse="0.8 0.8 0.8" specular="0.2 0.2 0.2" pos="0 0 5" dir="0 0 -1"/>
+        <geom name="floor" type="plane" size="10 10 0.1" material="matplane" contype="1" conaffinity="1"/>
+        
+        <!-- ADJUST CAMERA ANGLE HERE -->
+        <!-- Moved camera back and slightly up for a better isometric view -->
+        <camera name="track" pos="0 -2.5 2.0" zaxis="0 -1 0.8" mode="trackcom"/>
+
+        <!-- The fixed base -->
+        <body name="base" pos="0 0 0.5">
+            <geom name="base_geom" type="cylinder" size="0.1 0.5" rgba="0.3 0.3 0.3 1" contype="1" conaffinity="1"/>
+            
+            <!-- The horizontal rotary arm -->
+            <body name="rotary_arm" pos="0 0 0.5">
+                <!-- Motorized joint (Z-axis rotation) -->
+                <joint name="rotary_joint" type="hinge" axis="0 0 1" damping="0.05"/>
+                
+                <!-- The arm extending outwards -->
+                <geom name="arm_geom" type="capsule" fromto="0 0 0 0.4 0 0" size="0.02" rgba="0.2 0.8 0.2 1" mass="0.5"/>
+                
+                <!-- The loose pendulum attached to the end of the rotary arm -->
+                <body name="pendulum" pos="0.4 0 0">
+                    <!-- Loose joint (Y-axis rotation). No motor here! -->
+                    <!-- Reduced damping to make it swing more wildly -->
+                    <joint name="pendulum_joint" type="hinge" axis="0 1 0" damping="0.001"/>
+                    
+                    <!-- The pendulum pole (starts pointing DOWN) -->
+                    <!-- Made the pendulum longer and heavier -->
+                    <geom name="pendulum_geom" type="capsule" fromto="0 0 0 0 0 -0.6" size="0.02" rgba="0.8 0.2 0.2 1" mass="0.8"/>
+                </body>
+            </body>
+        </body>
+    </worldbody>
+
+    <actuator>
+        <!-- Actuate ONLY the horizontal rotary arm's joint -->
+        <motor name="rotary_motor" joint="rotary_joint" gear="10"/>
+    </actuator>
+</mujoco>

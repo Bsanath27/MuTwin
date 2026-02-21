@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+env/
+venv/
+.venv/
+build/
+dist/
+*.egg-info/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# MuJoCo / WASM Logs
+logs/
+*.log
+
+# Temp / IDE
+.vscode/
+.idea/
+.gemini/
+00_Ideapad
+
+# Large Binaries (if any, but MuJoCo wasm is small enough usually)
+# mujoco_wasm.wasm is ~3MB, fine for GitHub

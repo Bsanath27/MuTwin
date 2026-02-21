@@ -1,0 +1,113 @@
+<mujoco model="multi_robot_arena">
+    <compiler angle="degree" coordinate="local" inertiafromgeom="true" />
+    <option timestep="0.002" gravity="0 0 -9.81" integrator="RK4" />
+
+    <default>
+        <joint armature="1" damping="1" limited="true"/>
+        <geom conaffinity="1" condim="3" density="5.0" friction="1 0.5 0.5" margin="0.01"/>
+        <motor ctrllimited="true" ctrlrange="-1.0 1.0"/>
+    </default>
+
+    <asset>
+        <texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="512"/>
+        <texture builtin="checker" height="100" name="texplane" rgb1="0.2 0.3 0.4" rgb2="0.1 0.15 0.2" type="2d" width="100"/>
+        <material name="MatPlane" reflectance="0.5" shininess="1" specular="1" texrepeat="60 60" texture="texplane"/>
+    </asset>
+
+    <worldbody>
+        <!-- Ground Plane & Lighting -->
+        <light cutoff="100" diffuse="1 1 1" dir="-0 0 -1.3" directional="true" exponent="1" pos="0 0 1.3" specular=".1 .1 .1"/>
+        <geom conaffinity="1" condim="3" material="MatPlane" name="floor" pos="0 0 0" size="40 40 40" type="plane"/>
+
+        <!-- ============================================== -->
+        <!-- ROBOT 1: The Hopper (X=-2, Y=0) -->
+        <!-- ============================================== -->
+        <body name="hopper_torso" pos="-2 0 1.25">
+            <joint armature="0" damping="0" limited="false" margin="0.01" name="hopper_root" pos="0 0 0" type="free"/>
+            <geom pos="0 0 0" size="0.05 0.2" type="cylinder" rgba="0.9 0.2 0.2 1" />
+            
+            <body name="hopper_thigh" pos="0 0 -0.2">
+                <joint axis="0 1 0" name="hopper_thigh_joint" pos="0 0 0" range="-150 0" type="hinge"/>
+                <geom fromto="0 0 0 0 0 -0.4" size="0.05" type="capsule" rgba="0.2 0.8 0.2 1" />
+                
+                <body name="hopper_leg" pos="0 0 -0.4">
+                    <joint axis="0 1 0" name="hopper_leg_joint" pos="0 0 0" range="-150 0" type="hinge"/>
+                    <geom fromto="0 0 0 0 0 -0.5" size="0.04" type="capsule" rgba="0.2 0.2 0.9 1" />
+                    
+                    <body name="hopper_foot" pos="0 0 -0.5">
+                        <joint axis="0 1 0" name="hopper_foot_joint" pos="0 0 0" range="-45 45" type="hinge"/>
+                        <geom fromto="-0.1 0 0 0.2 0 0" size="0.06" type="capsule" rgba="0.9 0.9 0.2 1" />
+                    </body>
+                </body>
+            </body>
+        </body>
+
+        <!-- ============================================== -->
+        <!-- ROBOT 2: The Ant (X=2, Y=0) -->
+        <!-- ============================================== -->
+        <body name="ant_torso" pos="2 0 0.75">
+            <joint armature="0" damping="0" limited="false" margin="0.01" name="ant_root" pos="0 0 0" type="free"/>
+            <geom name="ant_torso_geom" pos="0 0 0" size="0.25" type="sphere" rgba="0.8 0.5 0.1 1"/>
+            
+            <!-- Front Left Leg -->
+            <body name="ant_fl_leg" pos="0.2 0.2 0" euler="0 0 45">
+                <joint axis="0 0 1" name="ant_fl_hip" range="-30 30" type="hinge"/>
+                <geom fromto="0.0 0.0 0.0 0.2 0.2 0.0" size="0.08" type="capsule"/>
+                <body pos="0.2 0.2 0">
+                    <joint axis="-1 1 0" name="ant_fl_ankle" range="30 70" type="hinge"/>
+                    <geom fromto="0.0 0.0 0.0 0.4 0.4 0.0" size="0.08" type="capsule"/>
+                </body>
+            </body>
+            
+            <!-- Front Right Leg -->
+            <body name="ant_fr_leg" pos="0.2 -0.2 0" euler="0 0 -45">
+                <joint axis="0 0 1" name="ant_fr_hip" range="-30 30" type="hinge"/>
+                <geom fromto="0.0 0.0 0.0 0.2 -0.2 0.0" size="0.08" type="capsule"/>
+                <body pos="0.2 -0.2 0">
+                    <joint axis="1 1 0" name="ant_fr_ankle" range="-70 -30" type="hinge"/>
+                    <geom fromto="0.0 0.0 0.0 0.4 -0.4 0.0" size="0.08" type="capsule"/>
+                </body>
+            </body>
+            
+            <!-- Back Left Leg -->
+            <body name="ant_bl_leg" pos="-0.2 0.2 0" euler="0 0 135">
+                <joint axis="0 0 1" name="ant_bl_hip" range="-30 30" type="hinge"/>
+                <geom fromto="0.0 0.0 0.0 -0.2 0.2 0.0" size="0.08" type="capsule"/>
+                <body pos="-0.2 0.2 0">
+                    <joint axis="-1 -1 0" name="ant_bl_ankle" range="-70 -30" type="hinge"/>
+                    <geom fromto="0.0 0.0 0.0 -0.4 0.4 0.0" size="0.08" type="capsule"/>
+                </body>
+            </body>
+            
+            <!-- Back Right Leg -->
+            <body name="ant_br_leg" pos="-0.2 -0.2 0" euler="0 0 -135">
+                <joint axis="0 0 1" name="ant_br_hip" range="-30 30" type="hinge"/>
+                <geom fromto="0.0 0.0 0.0 -0.2 -0.2 0.0" size="0.08" type="capsule"/>
+                <body pos="-0.2 -0.2 0">
+                    <joint axis="1 -1 0" name="ant_br_ankle" range="30 70" type="hinge"/>
+                    <geom fromto="0.0 0.0 0.0 -0.4 -0.4 0.0" size="0.08" type="capsule"/>
+                </body>
+            </body>
+        </body>
+
+    </worldbody>
+
+    <actuator>
+        <!-- Hopper Motors -->
+        <motor gear="200.0" joint="hopper_thigh_joint" name="hopper_thigh_motor"/>
+        <motor gear="200.0" joint="hopper_leg_joint" name="hopper_leg_motor"/>
+        <motor gear="100.0" joint="hopper_foot_joint" name="hopper_foot_motor"/>
+
+        <!-- Ant Motors (Hips) -->
+        <motor gear="150.0" joint="ant_fl_hip" name="ant_fl_hip_motor"/>
+        <motor gear="150.0" joint="ant_fr_hip" name="ant_fr_hip_motor"/>
+        <motor gear="150.0" joint="ant_bl_hip" name="ant_bl_hip_motor"/>
+        <motor gear="150.0" joint="ant_br_hip" name="ant_br_hip_motor"/>
+        
+        <!-- Ant Motors (Ankles) -->
+        <motor gear="150.0" joint="ant_fl_ankle" name="ant_fl_ankle_motor"/>
+        <motor gear="150.0" joint="ant_fr_ankle" name="ant_fr_ankle_motor"/>
+        <motor gear="150.0" joint="ant_bl_ankle" name="ant_bl_ankle_motor"/>
+        <motor gear="150.0" joint="ant_br_ankle" name="ant_br_ankle_motor"/>
+    </actuator>
+</mujoco>

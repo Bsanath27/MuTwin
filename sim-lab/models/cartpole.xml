@@ -1,0 +1,43 @@
+<mujoco model="cartpole">
+  <option timestep="0.005" gravity="0 0 -9.81"/>
+
+  <visual>
+    <headlight ambient="0.4 0.4 0.4" diffuse="0.6 0.6 0.6" specular="0.1 0.1 0.1"/>
+    <rgba haze="0.15 0.25 0.35 1"/>
+  </visual>
+
+  <worldbody>
+    <light pos="0 0 5" dir="0 0 -1" directional="true"/>
+    <geom name="rail" type="capsule" size="0.02 1" rgba="0.3 0.3 0.7 1"
+          pos="0 0 1" euler="0 90 0" contype="0" conaffinity="0"/>
+    <geom name="floor" type="plane" size="5 5 0.05" material="grid"/>
+
+    <body name="cart" pos="0 0 1">
+      <joint name="slider" type="slide" axis="1 0 0" limited="true"
+             range="-1 1" damping="0.1"/>
+      <geom name="cart_geom" type="box" size="0.2 0.15 0.1" mass="5"
+            rgba="0.2 0.6 0.8 1"/>
+
+      <body name="pole" pos="0 0 0.1">
+        <joint name="hinge" type="hinge" axis="0 1 0" damping="0.002"/>
+        <geom name="pole_geom" type="capsule" size="0.04 0.5" mass="1"
+              rgba="0.9 0.3 0.2 1" euler="0 0 0"/>
+      </body>
+    </body>
+  </worldbody>
+
+  <actuator>
+    <motor name="slide_motor" joint="slider" ctrllimited="true"
+           ctrlrange="-10 10" gear="50"/>
+  </actuator>
+
+  <asset>
+    <texture type="skybox" builtin="gradient" rgb1="0.1 0.1 0.2"
+             rgb2="0 0 0" width="512" height="512"/>
+    <texture name="grid" type="2d" builtin="checker" rgb1=".1 .2 .3"
+             rgb2=".2 .3 .4" width="512" height="512" mark="edge"
+             markrgb=".8 .8 .8"/>
+    <material name="grid" texture="grid" texrepeat="1 1"
+              texuniform="true" reflectance=".2"/>
+  </asset>
+</mujoco>
