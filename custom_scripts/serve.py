@@ -77,7 +77,7 @@ class COOPCOEPHandler(SimpleHTTPRequestHandler):
 if __name__ == '__main__':
     port = 8000
     print(f"Serving on port {port} with COOP/COEP/CORP + Gzip + Caching...")
-    print(f"Open http://localhost:{port}/wasm/antigravity/index.html")
+    print(f"Open http://localhost:{port}/src/frontend/index.html")
 
     server = ThreadingHTTPServer(('0.0.0.0', port), COOPCOEPHandler)
     server.serve_forever()

@@ -97,10 +97,10 @@ const paramPanel = new ParameterPanel(document.getElementById('param-panel'), {
 });
 
 // ─── Model Registration ─────────────────────────────────
-modelManager.register('drone', '../models/drone.xml', 'Drone (6-DOF)');
-modelManager.register('cartpole', '../models/cartpole.xml', 'Cartpole');
-modelManager.register('ant', '../models/ant.xml', 'Ant');
-modelManager.register('floating_box', '../models/floating_box.xml', 'Floating Box');
+modelManager.register('drone', '../../assets/models/drone.xml', 'Drone (6-DOF)');
+modelManager.register('cartpole', '../../assets/models/cartpole.xml', 'Cartpole');
+modelManager.register('ant', '../../assets/models/ant.xml', 'Ant');
+modelManager.register('floating_box', '../../assets/models/floating_box.xml', 'Floating Box');
 
 // Model selector UI
 const modelSelector = new ModelSelector(
